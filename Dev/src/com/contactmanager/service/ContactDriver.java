@@ -1,27 +1,28 @@
-package com.contactmanager;
+package com.contactmanager.service;
 
-import java.util.ArrayList;
-import java.util.List;
+
+import com.contactmanager.model.Contact;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ContactDriver {
 
-    private Set<Contact> contacts;
+    private final Set<Contact> contacts;
 
-    ContactDriver(){
+    public ContactDriver(){
         this.contacts = new LinkedHashSet<>();
     }
 
-    public void addContact(Contact c){
-        this.contacts.add(c);
+    public boolean addContact(Contact c){
+        return this.contacts.add(c);
     }
 
     public void deleteContact(Contact c){
         this.contacts.remove(c);
     }
 
-    public String contactsToString(){
+    public String contactsToFile(){
        StringBuilder sb = new StringBuilder() ;
        this.contacts.forEach(contact -> sb.append(contact.getUniqueId()).append(contact.getTitle()).append("\n"));
        return sb.toString();

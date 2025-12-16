@@ -1,9 +1,9 @@
-package com.contactmanager;
+package com.contactmanager.model;
 
 public class Tag {
-    private String name;
+    private final String name;
 
-   Tag(String name){
+  public Tag(String name){
        this.name = name;
    }
 

@@ -1,22 +1,29 @@
-package com.contactmanager;
-import java.util.LinkedHashSet;
+package com.contactmanager.model;
+
 import java.util.Set;
 import java.lang.StringBuilder;
 public class Contact {
-    private String title;
+    private final String title;
     private String phoneNumber;
     private String email;
     private Set<Tag> setOfTags;
-    private int uniqueId;
+    private final int uniqueId;
     private static int idCounter = 0;
 
-    Contact(String title, String phoneNumber, String email, Set<Tag> setOfTags   ){
+   public Contact(String title, String phoneNumber, String email, Set<Tag> setOfTags   ){
         this.title = title;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.setOfTags = setOfTags;
         ++idCounter;
         this.uniqueId = idCounter ;
+    }
+    public Contact(String title, Contact c){
+       this.title = title;
+        this.phoneNumber = c.getPhoneNumber();
+        this.email = c.getEmail();
+        this.setOfTags = c.getSetOfTags();
+        this.uniqueId = c.getUniqueId();
     }
     public String setToFile(){
         StringBuilder sb = new StringBuilder();
@@ -47,8 +54,8 @@ public class Contact {
         return phoneNumber;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public Set<Tag> getSetOfTags() {
+        return setOfTags;
     }
 
     public void setPhoneNumber(String phoneNumber) {
@@ -62,4 +69,32 @@ public class Contact {
     public void setSetOfTags(Set<Tag> setOfTags) {
         this.setOfTags = setOfTags;
     }
+
+
+
+
+    //used for sets, at first will be checked hashCode, if already exists, check the equals, not equal -> do not add element
+    // always use equals() + hashCode()
+    @Override
+    public boolean equals(Object o){
+       if(o==this)return true;
+       //new feature, already contains casting to Contact if instanceof true
+       if(!(o instanceof Contact c )) return false;
+
+       return this.normalizedTitle().equals(c.normalizedTitle());
+
+
+    }
+
+    @Override
+    public int hashCode(){
+       return this.normalizedTitle().hashCode();
+    }
+
+
+
+    public String normalizedTitle(){
+       return this.title.trim().toLowerCase();
+    }
+
 }

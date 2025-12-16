@@ -1,7 +1,13 @@
-package com.contactmanager;
+package com.contactmanager.view;
 
-import com.contactmanager.customexceptions.InvalidInputException;
-import com.contactmanager.customexceptions.NotFoundException;
+import com.contactmanager.exception.InvalidInputException;
+import com.contactmanager.exception.NotFoundException;
+import com.contactmanager.model.Contact;
+import com.contactmanager.model.Tag;
+import com.contactmanager.service.ContactDriver;
+import com.contactmanager.service.SearchHelper;
+import com.contactmanager.validator.InputValidator;
+import com.contactmanager.validator.Validator;
 
 import java.util.LinkedHashSet;
 import java.util.Scanner;
@@ -28,6 +34,8 @@ public final class MenuDriver {
                 int option;
 
 
+
+
                 try {
 
                     option = Integer.parseInt(input.nextLine());
@@ -38,6 +46,10 @@ public final class MenuDriver {
 
                 try {
                     MenuOption selected = MenuOption.fromInt(option);
+                    if(selected==MenuOption.END){
+                        System.out.println("Thank you for using contact manager!");
+                        break;
+                    }
                     switch (selected) {
                         case ADD -> addMenu(input);
                         case EDIT -> editMenu(input);
@@ -45,11 +57,14 @@ public final class MenuDriver {
                         case VIEW -> viewMenu(input);
                         case SEARCH -> searchMenu(input);
 
+
+
                     }
+
                 } catch (InvalidInputException e) {
-                    System.out.println(e.toString());
-                    e.printStackTrace();
-                    continue;
+                    System.out.println(e.getMessage());
+
+
                 }
 
             }
@@ -67,8 +82,14 @@ public final class MenuDriver {
         Set<Tag> setOfTags = MenuDriver.handleInputOfTags(input, "Enter tags for new contact in form(tag,tag,tag)", true);
 
 
-        cd.addContact(new Contact(title, email, phoneNumber, setOfTags));
-        System.out.printf("%s was successfully added!\n", title);
+        boolean added = cd.addContact(new Contact(title, email, phoneNumber, setOfTags));
+        if(added){
+            System.out.printf("%s was successfully added!\n", title);
+
+        }
+        else{
+            System.out.printf("%s is a duplicate and was not added!\n", title);
+        }
         EnterToContinue(input);
 
 
@@ -96,19 +117,29 @@ public final class MenuDriver {
                 String phoneNumber = MenuDriver.handleInput(input, "Enter new phone number of new contact", InputValidator::validatePhoneNumber, false);
                 Set<Tag> setOfTags = MenuDriver.handleInputOfTags(input, "Enter new tags for new contact in form(tag,tag,tag)", false);
 
-                if(!title.isEmpty()){
-                    contactToEdit.setTitle(title);
+                if (!title.isEmpty()) {
+                    Contact newContact = new Contact(title, contactToEdit);
+
+                    cd.deleteContact(contactToEdit);
+
+                    if(!cd.addContact(newContact)){
+                        System.out.println("Contact with the entered name already exists!");
+                        cd.addContact(contactToEdit);
+                        break;
+                    }
+
+
                 }
-                if(!email.isEmpty()){
+                if (!email.isEmpty()) {
                     contactToEdit.setEmail(email);
                 }
 
-                if(!phoneNumber.isEmpty()){
+                if (!phoneNumber.isEmpty()) {
                     contactToEdit.setPhoneNumber(phoneNumber);
 
                 }
 
-                if(!setOfTags.isEmpty()){
+                if (!setOfTags.isEmpty()) {
                     contactToEdit.setSetOfTags(setOfTags);
                 }
 
@@ -181,7 +212,7 @@ public final class MenuDriver {
                            ALL CONTACTS
                 ----------------------------------
                 """);
-        System.out.println(sb.toString());
+        System.out.println(sb);
         EnterToContinue(input);
 
     }
@@ -197,7 +228,7 @@ public final class MenuDriver {
                 }
                 Contact searchedContact = SearchHelper.findContactByParameter(value, cd.getContacts());
                 System.out.println("----------------------------------");
-                System.out.println(searchedContact.toString());
+                System.out.println(searchedContact);
                 System.out.println("----------------------------------");
                 EnterToContinue(input);
                 break;
@@ -212,19 +243,11 @@ public final class MenuDriver {
     }
 
 
-    private static void checkOption(int option) throws InvalidInputException {
-        if (option > 5 || option < 0) {
-            throw new InvalidInputException("Invalid input!");
-        }
-    }
+
 
 
     enum MenuOption {
-        ADD(1),
-        EDIT(2),
-        DELETE(3),
-        VIEW(4),
-        SEARCH(5);
+        ADD(1), EDIT(2), DELETE(3), VIEW(4), SEARCH(5),END(0);
 
         private final int code;
 
@@ -289,13 +312,16 @@ public final class MenuDriver {
                 }
             }
             try {
-                InputValidator.validateTag(value);
-                String[] parts = value.split(",");
-                for (var part : parts) {
-                    setOfTags.add(new Tag(part.trim()));
+                if (InputValidator.validateTag(value)) {
 
+
+                    String[] parts = value.split(",");
+                    for (var part : parts) {
+                        setOfTags.add(new Tag(part.trim()));
+
+                    }
+                    return setOfTags;
                 }
-                return setOfTags;
             } catch (InvalidInputException e) {
 
                 System.out.println(e.getMessage());

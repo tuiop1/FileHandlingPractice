@@ -1,6 +1,8 @@
-package com.contactmanager;
+package com.contactmanager.service;
 
-import com.contactmanager.customexceptions.NotFoundException;
+import com.contactmanager.validator.InputValidator;
+import com.contactmanager.exception.NotFoundException;
+import com.contactmanager.model.Contact;
 
 import java.util.Set;
 
@@ -8,7 +10,7 @@ public final class SearchHelper {
     public static Contact findContactByParameter(String parameter, Set<Contact> setOfContacts) throws NotFoundException {
 
         for (var c : setOfContacts) {
-            if (c.getTitle().equals(parameter) || c.getPhoneNumber().equals(parameter)|| c.getEmail().equals(parameter)) {
+            if (c.normalizedTitle().equals(parameter.trim().toLowerCase()) || c.getPhoneNumber().equals(parameter)|| c.getEmail().equals(parameter)) {
 
                 return c;
             }
