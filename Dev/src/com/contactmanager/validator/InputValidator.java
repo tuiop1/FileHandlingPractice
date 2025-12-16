@@ -1,8 +1,8 @@
-package com.contactmanager;
+package com.contactmanager.validator;
 
-import com.contactmanager.customexceptions.InvalidInputException;
+import com.contactmanager.exception.InvalidInputException;
 
-import java.util.Set;
+
 
 public final class InputValidator {
 
