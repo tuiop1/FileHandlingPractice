@@ -15,8 +15,8 @@ public class Contact {
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.setOfTags = setOfTags;
-        ++idCounter;
-        this.uniqueId = idCounter ;
+
+        this.uniqueId = ++idCounter ;
     }
     public Contact(String title, Contact c){
        this.title = title;
@@ -37,9 +37,7 @@ public class Contact {
 
     }
 
-    public String toFile(){
-       return String.format("%s,%s,%s,%s",title,phoneNumber,email,setToFile());
-    }
+
 
     public String getTitle() {
         return title;
@@ -90,8 +88,10 @@ public class Contact {
     public int hashCode(){
        return this.normalizedTitle().hashCode();
     }
-
-
+    public static void setIdCounter(int idc)
+    {
+        idCounter = idc;
+    }
 
     public String normalizedTitle(){
        return this.title.trim().toLowerCase();
