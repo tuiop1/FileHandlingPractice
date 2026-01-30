@@ -22,13 +22,7 @@ public class ContactDriver {
         this.contacts.remove(c);
     }
 
-    public String contactsToFile(){
-       StringBuilder sb = new StringBuilder() ;
-       this.contacts.forEach(contact -> sb.append(contact.getUniqueId()).append(contact.getTitle()).append("\n"));
-       return sb.toString();
-    }
-
-    public Set<Contact> getContacts() {
+       public Set<Contact> getContacts() {
         return contacts;
     }
 

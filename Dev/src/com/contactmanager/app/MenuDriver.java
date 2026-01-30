@@ -1,22 +1,63 @@
-package com.contactmanager.view;
+package com.contactmanager.app;
 
 import com.contactmanager.exception.InvalidInputException;
 import com.contactmanager.exception.NotFoundException;
 import com.contactmanager.model.Contact;
 import com.contactmanager.model.Tag;
+import com.contactmanager.persistence.ContactFileRepository;
 import com.contactmanager.service.ContactDriver;
 import com.contactmanager.service.SearchHelper;
 import com.contactmanager.validator.InputValidator;
 import com.contactmanager.validator.Validator;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Set;
 
 public final class MenuDriver {
-    static ContactDriver cd = new ContactDriver();
+    private final static ContactDriver cd = new ContactDriver();
+    private final static Path path = Path.of(System.getProperty("user.home")).resolve("Documents").resolve("contact-manager");
+    private final static ContactFileRepository fileRepository = new ContactFileRepository(path);
+
+
+
 
     public static void run() {
+        try {
+
+            if(fileRepository.initializeFileRepository()){
+                System.out.println("Contacts repository was successfully created.");
+            }
+
+        }
+        catch (IOException e ){
+            System.out.println("Unfortunately, contacts file was not created!");
+
+            return;
+        }
+        try{
+
+
+            cd.getContacts().addAll(fileRepository.readAllContacts());
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println("Reading contacts from the file went wrong(sth. was written false probably)");
+        }
+        catch(IOException e )
+        {
+
+            System.out.println("Reading contacts from the file went wrong");
+
+        }
+
+
+
+
+
+
+
         try (Scanner input = new Scanner(System.in)) {
             while (true) {
                 System.out.print("""
@@ -34,8 +75,6 @@ public final class MenuDriver {
                 int option;
 
 
-
-
                 try {
 
                     option = Integer.parseInt(input.nextLine());
@@ -46,17 +85,16 @@ public final class MenuDriver {
 
                 try {
                     MenuOption selected = MenuOption.fromInt(option);
-                    if(selected==MenuOption.END){
+                    if (selected == MenuOption.END) {
                         System.out.println("Thank you for using contact manager!");
                         break;
                     }
                     switch (selected) {
-                        case ADD -> addMenu(input);
+                        case ADD -> addMenu(input, fileRepository);
                         case EDIT -> editMenu(input);
                         case DELETE -> deleteMenu(input);
                         case VIEW -> viewMenu(input);
                         case SEARCH -> searchMenu(input);
-
 
 
                     }
@@ -71,9 +109,16 @@ public final class MenuDriver {
         }
 
     }
+    public static ContactFileRepository getFileRepository(){
+        return fileRepository;
+    }
+    public static ContactDriver getCd(){
+        return cd;
+    }
 
 
-    public static void addMenu(Scanner input) {
+
+    public static void addMenu(Scanner input, ContactFileRepository fr) {
 
 
         String title = MenuDriver.handleInput(input, "Enter title of new contact", InputValidator::validateTitle, true);
@@ -81,13 +126,18 @@ public final class MenuDriver {
         String phoneNumber = MenuDriver.handleInput(input, "Enter phone number of new contact", InputValidator::validatePhoneNumber, false);
         Set<Tag> setOfTags = MenuDriver.handleInputOfTags(input, "Enter tags for new contact in form(tag,tag,tag)", true);
 
-
-        boolean added = cd.addContact(new Contact(title, email, phoneNumber, setOfTags));
-        if(added){
+        Contact c = new Contact(title, email, phoneNumber, setOfTags);
+        boolean added = cd.addContact(c);
+        if (added) {
             System.out.printf("%s was successfully added!\n", title);
+            try{
+                fr.writeContact(c);
 
-        }
-        else{
+            } catch (IOException e) {
+                System.out.println("New contact was not added to the file unfortunately!");
+            }
+
+        } else {
             System.out.printf("%s is a duplicate and was not added!\n", title);
         }
         EnterToContinue(input);
@@ -99,19 +149,15 @@ public final class MenuDriver {
 
         while (true) {
             try {
-                System.out.print("Enter the title/id of the contact you want to edit:");
+                System.out.print("Enter the title of the contact you want to edit:");
                 String value = input.nextLine().trim();
                 if (value.isEmpty()) {
                     return;
                 }
                 Contact contactToEdit;
-                try {
-                    int ID = Integer.parseInt(value);
-                    contactToEdit = SearchHelper.findContactByID(ID, cd.getContacts());
 
-                } catch (NumberFormatException e) {
-                    contactToEdit = SearchHelper.findContactByTitle(value, cd.getContacts());
-                }
+                contactToEdit = SearchHelper.findContactByTitle(value, cd.getContacts());
+
                 String title = MenuDriver.handleInput(input, "Enter new title of the contact", InputValidator::validateTitle, false);
                 String email = MenuDriver.handleInput(input, "Enter new email of the contact", InputValidator::validateEmail, false);
                 String phoneNumber = MenuDriver.handleInput(input, "Enter new phone number of new contact", InputValidator::validatePhoneNumber, false);
@@ -122,7 +168,7 @@ public final class MenuDriver {
 
                     cd.deleteContact(contactToEdit);
 
-                    if(!cd.addContact(newContact)){
+                    if (!cd.addContact(newContact)) {
                         System.out.println("Contact with the entered name already exists!");
                         cd.addContact(contactToEdit);
                         break;
@@ -161,20 +207,16 @@ public final class MenuDriver {
     public static void deleteMenu(Scanner input) {
         while (true) {
             try {
-                System.out.print("Enter the title/id of the contact you want to delete:");
+                System.out.print("Enter the title of the contact you want to delete:");
                 String value = input.nextLine().trim();
                 if (value.isEmpty()) {
                     return;
                 }
 
                 Contact contactToDelete;
-                try {
-                    int ID = Integer.parseInt(value);
-                    contactToDelete = SearchHelper.findContactByID(ID, cd.getContacts());
 
-                } catch (NumberFormatException e) {
-                    contactToDelete = SearchHelper.findContactByTitle(value, cd.getContacts());
-                }
+                contactToDelete = SearchHelper.findContactByTitle(value, cd.getContacts());
+
 
                 String titleOfDeletedContact = contactToDelete.getTitle();
                 cd.deleteContact(contactToDelete);
@@ -243,11 +285,8 @@ public final class MenuDriver {
     }
 
 
-
-
-
     enum MenuOption {
-        ADD(1), EDIT(2), DELETE(3), VIEW(4), SEARCH(5),END(0);
+        ADD(1), EDIT(2), DELETE(3), VIEW(4), SEARCH(5), END(0);
 
         private final int code;
 

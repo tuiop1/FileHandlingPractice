@@ -33,7 +33,7 @@ public final class InputValidator {
     }
 
     public static boolean validateTag(String s) throws InvalidInputException {
-        if (!s.matches("^[A-Za-z]{3,}(\\s*,\\s*[A-Za-z]{3,})*$")) {
+        if (!s.matches("^[A-Za-z0-9]{3,}(\\s*,\\s*[A-Za-z0-9]{3,})*$")) {
 
             throw new InvalidInputException("Invalid input of tags!!!");
         }

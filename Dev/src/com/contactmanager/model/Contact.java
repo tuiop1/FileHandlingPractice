@@ -7,46 +7,47 @@ public class Contact {
     private String phoneNumber;
     private String email;
     private Set<Tag> setOfTags;
-    private final int uniqueId;
-    private static int idCounter = 0;
+
+
 
    public Contact(String title, String phoneNumber, String email, Set<Tag> setOfTags   ){
         this.title = title;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.setOfTags = setOfTags;
-        ++idCounter;
-        this.uniqueId = idCounter ;
+
+
     }
     public Contact(String title, Contact c){
        this.title = title;
         this.phoneNumber = c.getPhoneNumber();
         this.email = c.getEmail();
         this.setOfTags = c.getSetOfTags();
-        this.uniqueId = c.getUniqueId();
+
     }
-    public String setToFile(){
+    public String setToString(){
         StringBuilder sb = new StringBuilder();
-        this.setOfTags.forEach(t ->sb.append(t).append(';') );
+        boolean first = true;
+        for (var tag : setOfTags){
+            if(!first) sb.append(',');
+            sb.append(tag);
+            first = false;
+        }
         return sb.toString();
     }
 
     @Override
     public String toString(){
-        return String.format("%s\nID: %d\nPhone number: %s\nEmail: %s\nTags: %s",getTitle(), getUniqueId(),getPhoneNumber(),getEmail(),setToFile());
+        return String.format("%s\nPhone number: %s\nEmail: %s\nTags: %s",getTitle(), getPhoneNumber(),getEmail(),setToString());
 
     }
 
-    public String toFile(){
-       return String.format("%s,%s,%s,%s",title,phoneNumber,email,setToFile());
-    }
+
 
     public String getTitle() {
         return title;
     }
-    public int getUniqueId(){
-        return uniqueId;
-    }
+
     public String getEmail(){
         return email;
     }
@@ -90,7 +91,6 @@ public class Contact {
     public int hashCode(){
        return this.normalizedTitle().hashCode();
     }
-
 
 
     public String normalizedTitle(){
