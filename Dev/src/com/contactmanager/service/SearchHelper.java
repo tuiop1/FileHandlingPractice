@@ -35,18 +35,7 @@ public final class SearchHelper {
 
     }
 
-    public static Contact findContactByID(int id, Set<Contact> setOfContacts) throws NotFoundException {
 
-        for (var v : setOfContacts) {
-            if (v.getUniqueId() == (id)) {
-                return v;
-            }
-        }
-
-
-        throw new NotFoundException("Sorry, contact was not found!");
-
-    }
 
 
 }
